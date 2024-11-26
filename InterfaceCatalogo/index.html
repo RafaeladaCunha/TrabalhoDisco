@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Discos</title>
+  <link rel="stylesheet" href="./Css/styles.css">
+  <style>
+   
+    .disco-card {
+      border: 1px solid #703434;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .disco-card h3 {
+      margin: 0;
+      color: #333;
+    }
+    .disco-card p {
+      margin: 5px 0;
+      color: #555;
+    }
+    .musica-list {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+    .musica-list li {
+      list-style-type: circle;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Catálogo de Discos Musicais</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="cadastro-artista.html">Cadastrar Artista</a></li>
+        <li><a href="cadastro-disco.html">Cadastrar Disco</a></li>
+        <li><a href="buscar.html">Buscar</a></li>
+        <li><a href="discos.html">Discos</a></li>
+        <li><a href="artistas.html">Artistas</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Bem-vindo ao Catálogo de Discos</h2>
+      <p><strong>discos disponíveis:</strong> </p>
+      <div id="discos-container">
+        
+      </div>
+    </section>
+  </main>
+
+
+  <script>
+    const BASE_URL = "http://localhost:8080";
+
+    async function listarDiscos() {
+      try {
+        const response = await fetch(`${BASE_URL}/discos/listar`);
+        if (!response.ok) throw new Error("Erro ao buscar discos");
+
+        const discos = await response.json();
+        const container = document.getElementById("discos-container");
+
+        container.innerHTML = ""; 
+
+        for (const disco of discos) {
+          
+          const artistaResponse = await fetch(`${BASE_URL}/artistas/listar/${disco.artistaId}`);
+          const artista = artistaResponse.ok ? await artistaResponse.json() : { nome: "Desconhecido" };
+
+          
+          const musicasResponse = await fetch(`${BASE_URL}/musicas/listar/disco/${disco.id}`);
+          const musicas = musicasResponse.ok ? await musicasResponse.json() : [];
+
+         
+          const discoCard = document.createElement("div");
+          discoCard.className = "disco-card";
+          discoCard.innerHTML = `
+            <h3>${disco.titulo}</h3>
+            <p><strong>Artista:</strong> ${artista.nome}</p>
+            <p><strong>Ano de Lançamento:</strong> ${disco.anoLancamento}</p>
+            <p><strong>Gênero:</strong> ${disco.genero}</p>
+            <p><strong>Músicas:</strong></p>
+            <ul class="musica-list">
+              ${musicas.map(m => `<li>${m.nome} (${m.lancamento})</li>`).join("")}
+            </ul>
+          `;
+
+          container.appendChild(discoCard);
+        }
+      } catch (error) {
+        console.error("Erro ao listar discos:", error);
+        alert("Não foi possível carregar a lista de discos.");
+      }
+    }
+
+    
+    listarDiscos();
+  </script>
+</body>
+</html>

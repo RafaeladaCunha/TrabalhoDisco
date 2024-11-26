@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Artista</title>
+  <link rel="stylesheet" href="./Css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Editar Artista</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="cadastro-artista.html">Cadastrar Artista</a></li>
+        <li><a href="cadastro-disco.html">Cadastrar Disco</a></li>
+        <li><a href="buscar.html">Buscar</a></li>
+        <li><a href="discos.html">Discos</a></li>
+        <li><a href="artistas.html">Artistas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <form id="form-editar-artista" onsubmit="event.preventDefault(); editarArtista();">
+      <input type="hidden" id="artista-id" name="id" value="">
+
+      <label for="nome">Nome:</label>
+      <input type="text" id="nome" name="nome" required>
+
+      <label for="genero-musical">Gênero Musical:</label>
+      <input type="text" id="genero-musical" name="genero-musical" required>
+
+      <label for="discos">Discos:</label>
+      <select id="discos" name="discos" multiple>
+        <option value="1">Disco 1</option>
+        <option value="2">Disco 2</option>
+        
+      </select>
+      
+      <button type="submit">Salvar</button>
+    </form>
+  </main>
+
+  <script>
+   
+    async function editarArtista() {
+      const id = document.getElementById("artista-id").value;
+      const nome = document.getElementById("nome").value;
+      const genero = document.getElementById("genero-musical").value;
+      const discosSelecionados = Array.from(document.getElementById("discos").selectedOptions).map(option => option.value);
+
+      const artistaData = {
+        nome: nome,
+        genero: genero,
+        discos: discosSelecionados 
+      };
+
+      try {
+        
+        if (!id) {
+          alert("ID do artista não fornecido.");
+          return; 
+        }
+
+        const response = await fetch(`http://localhost:8080/artistas/atualizar/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(artistaData),
+        });
+
+        if (response.ok) {
+          const resultado = await response.json();
+          alert("Artista atualizado com sucesso!");
+          console.log(resultado);
+          document.getElementById("form-editar-artista").reset();
+        } else {
+          alert("Erro ao editar artista.");
+          console.error("Erro:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Erro na conexão com o servidor.");
+      }
+    }
+
+    
+    async function carregarArtista() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id'); 
+
+      if (!id) {
+        alert("ID do artista não encontrado.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8080/artistas/listar/${id}`);
+        if (response.ok) {
+          const artista = await response.json();
+          document.getElementById("artista-id").value = artista.id;
+          document.getElementById("nome").value = artista.nome;
+          document.getElementById("genero-musical").value = artista.genero;
+          
+        } else {
+          alert("Erro ao carregar dados do artista.");
+        }
+      } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Erro ao carregar dados do artista.");
+      }
+    }
+
+    
+    window.onload = carregarArtista;
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastrar Disco</title>
+  <link rel="stylesheet" href="./Css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Cadastrar Disco</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="cadastro-artista.html">Cadastrar Artista</a></li>
+        <li><a href="cadastro-disco.html">Cadastrar Disco</a></li>
+        <li><a href="buscar.html">Buscar</a></li>
+        <li><a href="discos.html">Discos</a></li>
+        <li><a href="artistas.html">Artistas</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <form id="form-cadastro-disco">
+      <label for="titulo">Título:</label>
+      <input type="text" id="titulo" name="titulo" required>
+      
+      <label for="anoLancamento">Ano de Lançamento:</label>
+      <input type="date" id="anoLancamento" name="anoLancamento" required>
+      
+      <label for="capa">Capa:</label>
+      <input type="file" id="capa" name="capa" accept="image/*" required>
+      
+      <label for="musicas">Músicas:</label>
+      <textarea id="musicas" name="musicas" placeholder="Digite as músicas separadas por linha"></textarea>
+      
+      <label for="genero">Gênero:</label>
+      <select id="genero" name="genero">
+        <option value="rock">Rock</option>
+        <option value="pop">Pop</option>
+        <option value="jazz">Jazz</option>
+        <!-- Adicione mais opções -->
+      </select>
+      
+      <label for="artistaId">ID do Artista:</label>
+      <input type="number" id="artistaId" name="artistaId" required>
+      
+      <button type="submit">Salvar</button>
+    </form>
+  </main>
+  <footer>
+    <p>&copy; 2024 Catálogo de Discos. Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    document.getElementById("form-cadastro-disco").addEventListener("submit", function(event) {
+      event.preventDefault(); 
+      
+      const titulo = document.getElementById("titulo").value;
+      const anoLancamento = document.getElementById("anoLancamento").value;
+      const capa = document.getElementById("capa").files[0];
+      const musicas = document.getElementById("musicas").value.split("\n").map(musica => ({ titulo: musica.trim() }));
+      const genero = document.getElementById("genero").value;
+      const artistaId = parseInt(document.getElementById("artistaId").value, 10);
+      
+      if (!capa) {
+        alert("Por favor, selecione uma capa.");
+        return;
+      }
+
+      
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        const capaBase64 = reader.result.split(",")[1]; 
+        
+        const disco = {
+          titulo,
+          anoLancamento,
+          capa: capaBase64,
+          genero,
+          musicas, 
+          artistaId
+        };
+
+       
+        fetch("http://localhost:8080/discos/criar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(disco)
+        })
+        .then(response => {
+          if (!response.ok) throw new Error("Erro ao salvar o disco.");
+          return response.json();
+        })
+        .then(data => {
+          alert("Disco cadastrado com sucesso!");
+          console.log(data);
+          document.getElementById("form-cadastro-disco").reset();
+        })
+        .catch(error => {
+          console.error("Erro:", error);
+          alert("Não foi possível salvar o disco. Tente novamente.");
+        });
+      };
+
+      reader.readAsDataURL(capa);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Discos e Artistas</title>
+    <link rel="stylesheet" href="./Css/estiloBuscar.css">
+</head>
+<body>
+    <header>
+        <h1>Buscar Discos e Artistas</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="cadastro-artista.html">Cadastrar Artista</a></li>
+                <li><a href="cadastro-disco.html">Cadastrar Disco</a></li>
+                <li><a href="buscar.html">Buscar</a></li>
+                <li><a href="discos.html">Discos</a></li>
+                <li><a href="artistas.html">Artistas</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Formulário de Busca -->
+        <form id="form-busca" class="form-busca">
+            <div class="campo-busca">
+                <label for="titulo">Título do Disco:</label>
+                <input type="text" id="titulo" name="titulo" placeholder="Exemplo: Thriller" />
+            </div>
+
+            <div class="campo-busca">
+                <label for="artista">Nome do Artista:</label>
+                <input type="text" id="artista" name="artista" placeholder="Exemplo: Michael Jackson" />
+            </div>
+
+            <div class="campo-busca">
+                <label for="genero">Gênero Musical:</label>
+                <select id="genero" name="genero">
+                    <option value="">Selecione um Gênero</option>
+                    <option value="rock">Rock</option>
+                    <option value="pop">Pop</option>
+                    <option value="hip-hop">Hip-Hop</option>
+                    <option value="jazz">Jazz</option>
+                    <option value="eletronica">Eletrônica</option>
+                </select>
+            </div>
+
+            <button type="submit">Buscar</button>
+        </form>
+
+        <!-- Resultados da Busca -->
+        <div id="resultados" class="resultados">
+            <h2>Resultados da Busca</h2>
+            <table id="resultados-tabela">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Artista</th>
+                        <th>Ano de Lançamento</th>
+                        <th>Gênero</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Resultados aparecerão aqui -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('form-busca').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+           
+            const titulo = document.getElementById('titulo').value.trim();
+            const artista = document.getElementById('artista').value.trim();
+            const genero = document.getElementById('genero').value;
+
+            try {
+                let query = '';
+
+               
+                if (titulo) {
+                    query = `http://localhost:8080/discos/listar/titulo/${encodeURIComponent(titulo)}`;
+                } else if (artista) {
+                    query = `http://localhost:8080/artistas/listar/nome/${encodeURIComponent(artista)}`;
+                } else if (genero) {
+                    query = `http://localhost:8080/discos/listar/genero/${encodeURIComponent(genero)}`;
+                } else {
+                    alert("Preencha pelo menos um dos campos para buscar.");
+                    return;
+                }
+
+                const response = await fetch(query);
+                if (!response.ok) throw new Error('Erro ao buscar discos e artistas.');
+
+                const resultados = await response.json();
+
+                
+                const tabelaCorpo = document.querySelector('#resultados-tabela tbody');
+                tabelaCorpo.innerHTML = ''; 
+
+                if (Array.isArray(resultados) && resultados.length > 0) {
+                    resultados.forEach(resultado => {
+                        const linha = document.createElement('tr');
+                        linha.innerHTML = `
+                            <td>${resultado.titulo || 'Título desconhecido'}</td>
+                            <td>${resultado.nome || resultado.artista || 'Artista desconhecido'}</td>
+                            <td>${resultado.anoLancamento || 'Desconhecido'}</td>
+                            <td>${resultado.genero || 'Não informado'}</td>
+                        `;
+                        tabelaCorpo.appendChild(linha);
+                    });
+                } else {
+                    tabelaCorpo.innerHTML = '<tr><td colspan="4">Nenhum resultado encontrado.</td></tr>';
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao realizar a busca. Tente novamente mais tarde.');
+            }
+        });
+    </script>
+</body>
+</html>
+
